@@ -5,7 +5,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
     // Hay que poner la ip local despues de montar el servidor
-    private const val BASE_URL = "http://192.168.56.1:8000/"
+    private const val BASE_URL = "http://10.0.2.2:8000/"
 
     val instance: ApiService by lazy {
         val retrofit = Retrofit.Builder()
