@@ -11,14 +11,11 @@ import com.rosty.smartexpenseapp.model.Expense
 
 @Composable
 fun ExpenseItem(expense: Expense) {
-    val priceColor = if (expense.amount > 20.0) Color(0xFFB71C1C) else Color.Red
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
@@ -27,14 +24,31 @@ fun ExpenseItem(expense: Expense) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text(text = expense.title, style = MaterialTheme.typography.titleMedium)
-                Text(text = expense.category, style = MaterialTheme.typography.bodySmall)
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = expense.title,
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = expense.category,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(text = " • ", color = Color.Gray)
+                    Text(
+                        text = expense.date,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
+                }
             }
+
             Text(
-                text = "-${expense.amount}€",
-                color = priceColor,
-                style = MaterialTheme.typography.titleLarge
+                text = "${String.format("%.2f", expense.amount)}€",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.secondary
             )
         }
     }
