@@ -1,74 +1,130 @@
 package com.rosty.smartexpenseapp.screens
 
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Scaffold
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import com.rosty.smartexpenseapp.components.AddExpenseButton
-import com.rosty.smartexpenseapp.components.AddExpenseDialog
-import com.rosty.smartexpenseapp.components.ExpenseItem
+import com.rosty.smartexpenseapp.components.*
 import com.rosty.smartexpenseapp.model.Expense
-
 import com.rosty.smartexpenseapp.network.RetrofitClient
 import kotlinx.coroutines.launch
+import androidx.compose.ui.graphics.Color
+
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
+
+import com.rosty.smartexpenseapp.components.SwipeableExpenseCard
 
 @Composable
 fun ExpenseScreen() {
-    // 1. Estado de la lista
     val expenses = remember { mutableStateListOf<Expense>() }
     var showDialog by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+    var expenseToDelete by remember { mutableStateOf<Expense?>(null) }
 
-    // 2. Cargar datos al iniciar la App
-    LaunchedEffect(Unit) {
-        try {
-            val listaDesdePython = RetrofitClient.instance.getExpenses()
-            expenses.clear()
-            expenses.addAll(listaDesdePython)
-        } catch (e: Exception) {
-            println("DEBUG: Error al cargar: ${e.message}")
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    val loadExpenses = {
+        scope.launch {
+            try {
+                val lista = RetrofitClient.instance.getExpenses()
+                expenses.clear()
+                expenses.addAll(lista)
+            } catch (e: Exception) {
+                println("Error: ${e.message}")
+            }
         }
     }
 
+    LaunchedEffect(Unit) { loadExpenses() }
+
     Scaffold(
-        floatingActionButton = {
-            AddExpenseButton(onClick = { showDialog = true })
-        }
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        floatingActionButton = { AddExpenseButton { showDialog = true } }
     ) { paddingValues ->
 
         if (showDialog) {
             AddExpenseDialog(
                 onDismiss = { showDialog = false },
                 onSave = { nombre, monto, categoria ->
-                    val formatter = java.text.SimpleDateFormat("dd MMM", java.util.Locale.getDefault())
-                    val fechaHoy = formatter.format(java.util.Date())
-
-                    val nuevoGasto = Expense(
-                        id = (0..10000).random(),
-                        title = nombre,
-                        amount = monto,
-                        category = categoria,
-                        date = fechaHoy
-                    )
-
                     scope.launch {
                         try {
-                            RetrofitClient.instance.addExpense(nuevoGasto)
-                            expenses.add(nuevoGasto)
+                            val nuevo = Expense(0, nombre, monto, categoria, "Hoy")
+                            RetrofitClient.instance.addExpense(nuevo)
+                            loadExpenses() // Recarga limpia
                             showDialog = false
                         } catch (e: Exception) {
-                            println("DEBUG: Error al guardar: ${e.message}")
+                            snackbarHostState.showSnackbar("Error al guardar")
                         }
                     }
                 }
             )
         }
 
+        if (showDeleteConfirm) {
+            AlertDialog(
+                onDismissRequest = { showDeleteConfirm = false },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = null,
+                        tint = Color(0xFFD32F2F) // Rojo de advertencia
+                    )
+                },
+                title = {
+                    Text(text = "Confirmar eliminación")
+                },
+                text = {
+                    Text("¿Estás seguro de que quieres borrar este gasto? Esta acción es permanente y no se podrá deshacer.")
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            expenseToDelete?.id?.let { id ->
+                                scope.launch {
+                                    try {
+                                        RetrofitClient.instance.deleteExpense(id)
+                                        expenses.remove(expenseToDelete)
+                                        snackbarHostState.showSnackbar("Gasto eliminado correctamente")
+                                    } catch (e: Exception) {
+                                        snackbarHostState.showSnackbar("Error: No se pudo eliminar")
+                                    }
+                                }
+                            }
+                            showDeleteConfirm = false
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)) // Botón rojo
+                    ) {
+                        Text("Eliminar", color = Color.White)
+                    }
+                },
+                dismissButton = {
+                    OutlinedButton(
+                        onClick = { showDeleteConfirm = false }
+                    ) {
+                        Text("Cancelar")
+                    }
+                }
+            )
+        }
+
         LazyColumn(modifier = Modifier.padding(paddingValues)) {
-            items(expenses) { expense ->
-                ExpenseItem(expense = expense)
+            items(
+                items = expenses,
+                key = { it.id ?: it.hashCode() }
+            ) { expense ->
+                Box(modifier = Modifier.animateItem()) {
+                    SwipeableExpenseCard(
+                        onDeleteRequest = {
+                            expenseToDelete = expense
+                            showDeleteConfirm = true
+                        }
+                    ) {
+                        ExpenseItem(expense = expense)
+                    }
+                }
             }
         }
     }
