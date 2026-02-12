@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
+// Botón flotante: acción principal para abrir el formulario de nuevo gasto.
 @Composable
 fun AddExpenseButton(onClick: () -> Unit) {
     ExtendedFloatingActionButton(

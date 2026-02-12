@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.util.lerp
 
+// Tarjeta deslizable: permite borrar un gasto deslizando la fila hacia la izquierda.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SwipeableExpenseCard(

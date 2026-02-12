@@ -10,6 +10,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.BorderStroke
 
+// Formulario de entrada: diálogo para capturar nombre, monto y categoría del gasto.
 @Composable
 fun AddExpenseDialog(
     onDismiss: () -> Unit,
@@ -24,13 +25,12 @@ fun AddExpenseDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(24.dp), // Bordes más suaves
+        shape = RoundedCornerShape(24.dp),
         title = {
             Text("Nuevo Gasto", style = MaterialTheme.typography.headlineSmall)
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                // Cambiamos a OutlinedTextField para un look más moderno
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -48,13 +48,11 @@ fun AddExpenseDialog(
                     shape = RoundedCornerShape(12.dp)
                 )
 
-                // Selector de Categoría con estilo
                 Box(modifier = Modifier.fillMaxWidth()) {
                     OutlinedButton(
                         onClick = { expanded = true },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
-                        // Usamos el color de la categoría seleccionada en el borde
                         border = BorderStroke(1.dp, getCategoryColor(categoriaSeleccionada))
                     ) {
                         Icon(

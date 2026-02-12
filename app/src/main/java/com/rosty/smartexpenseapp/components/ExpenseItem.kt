@@ -10,9 +10,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.BorderStroke
 import com.rosty.smartexpenseapp.model.Expense
 
+// Fila individual: muestra nombre, categoría, fecha y monto de un gasto específico.
 @Composable
 fun ExpenseItem(expense: Expense) {
-    // Extraemos la magia de CategoryUtils
+
     val categoryColor = getCategoryColor(expense.category)
     val categoryIcon = getCategoryIcon(expense.category)
 
@@ -21,7 +22,6 @@ fun ExpenseItem(expense: Expense) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        // Añadimos un borde sutil del color de la categoría para darle un toque pro
         border = BorderStroke(1.dp, categoryColor.copy(alpha = 0.2f))
     ) {
         Row(
@@ -31,7 +31,7 @@ fun ExpenseItem(expense: Expense) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icono de categoría a la izquierda
+
             Icon(
                 imageVector = categoryIcon,
                 contentDescription = null,
@@ -64,7 +64,7 @@ fun ExpenseItem(expense: Expense) {
             Text(
                 text = "${String.format("%.2f", expense.amount)}€",
                 style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onSurface // Un color más neutro para el monto
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }

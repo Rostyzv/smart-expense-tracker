@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
 
+// Utilidades de categoría: asigna iconos y colores automáticos según el nombre de la categoría.
 @Composable
 fun getCategoryColor(category: String): Color {
     val scheme = MaterialTheme.colorScheme
