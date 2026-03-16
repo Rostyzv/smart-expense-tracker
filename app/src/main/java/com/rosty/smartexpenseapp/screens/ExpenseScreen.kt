@@ -1,10 +1,15 @@
 package com.rosty.smartexpenseapp.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
+import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.rosty.smartexpenseapp.components.*
 import com.rosty.smartexpenseapp.model.Expense
 import com.rosty.smartexpenseapp.network.RetrofitClient
@@ -15,7 +20,7 @@ import java.time.format.DateTimeFormatter
 import com.rosty.smartexpenseapp.model.PeriodType
 import com.rosty.smartexpenseapp.test.TestList
 
-// Pantalla principal: gestiona datos de la API, estados y organiza la interfaz completa.
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpenseScreen() {
     val expenses = remember { mutableStateListOf<Expense>() }
@@ -28,6 +33,11 @@ fun ExpenseScreen() {
     val snackbarHostState = remember { SnackbarHostState() }
     val hoy = remember { LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM")) }
     val listState = rememberLazyListState()
+
+    var showExportMenu by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
+
+    val context = androidx.compose.ui.platform.LocalContext.current // <--- ESTA ES LA CLAVE
 
 
     val expensesMostrados = remember(expenses.toList(), periodoSeleccionado) {
@@ -76,7 +86,18 @@ fun ExpenseScreen() {
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        floatingActionButton = { AddExpenseButton { showDialog = true } }
+        floatingActionButton = {
+            Column(horizontalAlignment = androidx.compose.ui.Alignment.End) {
+                SmallFloatingActionButton(
+                    onClick = { showExportMenu = true },
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                ) {
+                    Icon(androidx.compose.material.icons.Icons.Default.Share, contentDescription = "Exportar")
+                }
+                AddExpenseButton { showDialog = true }
+            }
+        }
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
 
@@ -101,7 +122,6 @@ fun ExpenseScreen() {
             }
         }
 
-        // --- DIÁLOGOS ---
 
         if (showDialog) {
             AddExpenseDialog(
@@ -140,6 +160,35 @@ fun ExpenseScreen() {
                     showDeleteConfirm = false
                 }
             )
+        }
+        if (showExportMenu) {
+            ModalBottomSheet(
+                onDismissRequest = { showExportMenu = false },
+                sheetState = sheetState
+            ) {
+                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                    Text("Exportar Informe", style = MaterialTheme.typography.titleLarge)
+                    Spacer(Modifier.height(16.dp))
+
+                    ListItem(
+                        headlineContent = { Text("Documento PDF (Visual)") },
+                        leadingContent = { Icon(androidx.compose.material.icons.Icons.Default.PictureAsPdf, null) },
+                        modifier = Modifier.clickable {
+                            com.rosty.smartexpenseapp.utils.ExportUtils.shareExpensesPdf(context, expensesMostrados, periodoSeleccionado.name)
+                            showExportMenu = false
+                        }
+                    )
+                    ListItem(
+                        headlineContent = { Text("Archivo Excel/CSV (Datos)") },
+                        leadingContent = { Icon(androidx.compose.material.icons.Icons.Default.TableChart, null) },
+                        modifier = Modifier.clickable {
+                            com.rosty.smartexpenseapp.utils.ExportUtils.shareExpensesCsv(context, expensesMostrados, periodoSeleccionado.name)
+                            showExportMenu = false
+                        }
+                    )
+                    Spacer(Modifier.height(32.dp))
+                }
+            }
         }
     }
 }
